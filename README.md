@@ -1,6 +1,5 @@
 # *ML full cycle*
 ## Classification task
----
 
 Repository aggregates full-cycle machine learning scripts of binary classificator model training, testing and deployment
  in case with unbalanced dirty real data.
