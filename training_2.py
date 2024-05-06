@@ -11,8 +11,9 @@ from sklearn.feature_selection import RFECV
 # from lightgbm import LGBMClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from sklearn.metrics import confusion_matrix, roc_curve
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_validate
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_validate, GridSearchCV
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeClassifier
 
 # Сброс ограничений на количество выводимых рядов
@@ -23,8 +24,10 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.max_colwidth', None)
 
 # Define the preprocessing steps and models
-preprocessor = StandardScaler()  # Choose the preprocessor
+# preprocessor = StandardScaler()  # Choose the preprocessor
 # preprocessor = MinMaxScaler()
+# Инициализация нормализатора
+scaler = MinMaxScaler()
 
 df = pd.read_csv('data/data.csv')
 y = df[['binary_target']].values
@@ -62,16 +65,20 @@ metrics = {
     'ROC-AUC': roc_auc_score
 }
 columns_need = ['Вес на крюке(тс)', 'Давление в манифольде(МПа)',
-                'Положение крюкоблока(м)', 'Температура окр.среды(C)',
-                'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
-                'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1',
-                'Нагрузка на долото(тс)']
-# , 'Глубина забоя(м)', 'Наработка каната(т*км)', 'Уровень(м3)',
-#                 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3',,
-#                 'Глубина инструмента(м)'
+                'Положение крюкоблока(м)',
+                'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)'
+                'Расход на входе(л/с)']
+#               'Температура окр.среды(C)',, 'Глубина инструмента(м)'
+#               'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
+#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3',
+#               'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1',
+
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
 result_valid_df = result_test_df.copy()
+
+#train min max preprocessor
+scaler.fit(df[columns_need])
 
 # Iterate over models
 for model_name, model in models.items():
@@ -82,7 +89,15 @@ for model_name, model in models.items():
     # df.pop('datetime')
     # 'Расход на входе(л/с)',
     # Split the data into train and test sets
-    X = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
+    # X = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
+
+    # X.columns = [s.replace(" ", "_") for s in X.columns.tolist()]
+    # Передача датасета и преобразование
+    scaled_features = scaler.transform(df[columns_need])
+
+    # Конвертация в табличный формат
+    X = pd.DataFrame(data=scaled_features,
+                     columns=df[columns_need].columns)
 
     X.columns = [s.replace(" ", "_") for s in X.columns.tolist()]
 
@@ -142,14 +157,15 @@ for model_name, model in models.items():
     result_valid_df.loc[model_name, 'ROC-AUC'] = round(cv_results['test_roc_auc'].mean(), 4)
     print(result_valid_df.loc[model_name, :])
 
-    # # Perform hyperparameter tuning using grid search
-    # param_grid = param_grids[model_name]
-    # grid_search = GridSearchCV(model, param_grid, cv=3, refit='roc_auc', scoring=['accuracy', 'precision', 'recall', 'f1', 'roc_auc'], n_jobs=-1)
-    # grid_search.fit(X_train, y_train)
-    #
-    # # Print the best hyperparameters
-    # print("Best hyperparameters:")
-    # print(grid_search.best_params_)
+    # Perform hyperparameter tuning using grid search
+    param_grid = param_grids[model_name]
+    grid_search = GridSearchCV(model, param_grid, cv=3, refit='roc_auc', scoring=['accuracy', 'precision', 'recall', 'f1', 'roc_auc'], n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+
+    # Print the best hyperparameters
+    print("Best hyperparameters:")
+    print(grid_search.best_params_)
+    model = grid_search.best_estimator_
 
     model.fit(X_train, y_train)
 
@@ -197,11 +213,19 @@ test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
 for model_name, model in models.items():
     if model_name not in ['HistGB']:
 
-        df = pd.read_csv('data/prep_data_test_174_new_remont.csv')  # Split the data into train and test sets
+        df = pd.read_csv('data/prep_data_test_174_new.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
-        X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
+        # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
         # X_test = df[columns_need]
+        # Нормализация данных
+        scaled_features = scaler.transform(df[columns_need])
+
+        # Конвертация в табличный формат
+        X_test = pd.DataFrame(data=scaled_features,
+                         columns=df[columns_need].columns)
+
+        X_test.columns = [s.replace(" ", "_") for s in X_test.columns.tolist()]
 
         column_labels_index = {
             'target': 'binary_target'
@@ -209,7 +233,7 @@ for model_name, model in models.items():
 
         df.rename(columns=column_labels_index, inplace=True)
 
-        X_test.columns = [s.replace(" ", "_") for s in X_test.columns.tolist()]
+        # X_test.columns = [s.replace(" ", "_") for s in X_test.columns.tolist()]
 
         y_test = df[['binary_target']].values
 
@@ -281,8 +305,8 @@ for model_name, model in models.items():
                 px.text(x=m, y=n, s=conf_matrix[m, n], va="center", ha="center", size="xx-large")
 
         # Sets the labels
-        plt.xlabel("Predictions", fontsize=16)
-        plt.ylabel("Actuals", fontsize=16)
+        plt.xlabel("Actuals", fontsize=16)
+        plt.ylabel("Predictions", fontsize=16)
         plt.title(f"Confusion Matrix | {model_name}", fontsize=15)
         plt.show()
 
@@ -295,7 +319,7 @@ for model_name, model in models.items():
         # plt.show()
 
         # Plot ROC curve
-        fpr, tpr, thresholds = roc_curve(y_test, y_pred)
+        fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
 
         plt.figure(figsize=(8, 6))
         plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {roc_auc:.2f})')

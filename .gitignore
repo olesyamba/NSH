@@ -1,0 +1,14 @@
+# created by virtualenv automatically
+*.csv
+data*
+data/
+*.rar
+*.7z
+*.zipgit
+catboost_info/
+*.zip
+*.pkl
+lock/
+models_1/
+models_2/
+models/
