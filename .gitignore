@@ -12,3 +12,5 @@ lock/
 models_1/
 models_2/
 models/
+models*/
+*.txt
