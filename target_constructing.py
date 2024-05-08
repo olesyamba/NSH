@@ -1,5 +1,5 @@
 from zipfile import ZipFile
-
+import os
 # from pyforest import *
 # Importing necessary libraries
 import pandas as pd
@@ -40,6 +40,63 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 # Сброс ограничений на количество символов в записи
 pd.set_option('display.max_colwidth', None)
+
+
+def scan_folder(parent):
+    # iterate over all the files in directory 'parent'
+    for file_name in os.listdir(parent):
+        if file_name.endswith(".xlsx"):
+            # if it's a txt file, print its name (or do whatever you want)
+            print(file_name)
+
+scan_folder("data/27/ББ7")  # Insert parent direcotry's path
+
+# parent = 'data/27/ББ7'
+# def scan_folder_read_excel(parent):
+#     data = pd.DataFrame()
+#     # iterate over all the files in directory 'parent'
+#     for file_name in os.listdir(parent):
+#         if file_name.endswith(".xlsx"):
+#             n = 0
+#             # if it's a txt file, print its name (or do whatever you want)
+#             print(f'Open {file_name}')
+#             data_name = pd.read_excel(f'{parent}/{file_name}', header=0,
+#                                       # usecols='A, AB',
+#                                       converters={
+#                                       'datetime': lambda x: xldate_as_datetime(float(x), 0)
+#                                       }
+#                                      )
+#             data_name = data_name.set_index('datetime', inplace=True)
+#             data_name = data_name.resample('T').mean()
+#             data_name = data_name.reset_index(inplace=True)
+#             data = pd.concat([data, pd.DataFrame(data_name)])
+#             n += 1
+#             print (f'{(n+1)*100/len(os.listdir(parent))} %')
+#     return data
+#
+# data = scan_folder_read_excel("data/27/ББ7")  # Insert parent direcotry's path
+data = pd.DataFrame()
+parent = 'data/07/ББ7/ББ7'
+# iterate over all the files in directory 'parent'
+for file_name in os.listdir(parent):
+    if file_name.endswith(".xlsx"):
+        n = 0
+        # if it's a txt file, print its name (or do whatever you want)
+        print(f'Open {file_name}')
+        data_name = pd.read_excel(f'{parent}/{file_name}', header=0,
+                                  # usecols='A, AB',
+                                  converters={
+                                      'datetime': lambda x: xldate_as_datetime(float(x), 0)
+                                  }
+                                  )
+        data_name.set_index('datetime', inplace=True)
+        data_name = data_name.resample('min').mean()
+        data_name.reset_index(inplace=True)
+        data = pd.concat([data, pd.DataFrame(data_name)])
+        n += 1
+        print(f'{(n + 1) * 100 / len(os.listdir(parent))} %')
+
+data.to_csv('data/07/data_min_mean_rig_7.csv', index=False)
 
 list_of_path = ['data/data_11_451_full.csv', 'data/data_rig_11_452_full.csv', 'data/data_rig_7_full.csv']
 for i in range(len(list_of_path)):

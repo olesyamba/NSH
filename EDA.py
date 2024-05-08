@@ -25,7 +25,7 @@ pd.set_option('display.max_colwidth', None)
 # looping opening and concating dataframes to construct full csv for each skvazhina
 data = pd.DataFrame()
 n = 0
-with ZipFile('data/rig_11_451.zip') as myzip:
+with ZipFile('data/27/ББ7 2.zip') as myzip:
     namelist = myzip.namelist()
     for name in namelist:
         if name in namelist:
@@ -42,6 +42,7 @@ with ZipFile('data/rig_11_451.zip') as myzip:
             data_name = data_name.reset_index(inplace=True)
             data = pd.concat([data, pd.DataFrame(data_name)])
             n += 1
+            print (f'{(n+1)*100/len(namelist)} %')
 
 data.to_csv('data/data_agg_per_min_mean_rig_11_451.csv', index=False)
 df = pd.read_csv('data/data_11_451_full.csv')

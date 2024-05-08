@@ -23,6 +23,7 @@ pd.set_option('display.max_columns', None)
 # Сброс ограничений на количество символов в записи
 pd.set_option('display.max_colwidth', None)
 
+
 # Define the preprocessing steps and models
 # preprocessor = StandardScaler()  # Choose the preprocessor
 # preprocessor = MinMaxScaler()
@@ -34,11 +35,10 @@ y = df[['binary_target']].values
 
 class_counts = df[['binary_target']].value_counts()
 scale_pos_weight = class_counts[0] / class_counts[1]
-version = f'_{str(datetime.now().month)}_{str(datetime.now().day)}'
-key_metric = 'recall'
-what_is_new = 'recall'
-filename = f"Отчет_{what_is_new}_{version}.txt"
-
+version = f'_5_7'
+version_to_write = f'_{str(datetime.now().month)}_{str(datetime.now().day)}'
+what_is_new = 'new_data_11'
+filename = f"Отчет_{what_is_new}_{version_to_write}.txt"
 
 models = {
     'Decision Tree' : DecisionTreeClassifier(random_state=42, class_weight="balanced"),
@@ -85,144 +85,6 @@ result_valid_df = result_test_df.copy()
 #train min max preprocessor
 scaler.fit(df[columns_need])
 
-# Iterate over models
-for model_name, model in models.items():
-
-    start = datetime.now()
-    print(f"Model: {model_name}\n{start}")
-    with open(filename, 'a+') as file:
-        file.write(f"Model: {model_name}\n\n")
-
-    df = pd.read_csv('data/data.csv')
-    # df.pop('datetime')
-    # 'Расход на входе(л/с)',
-    # Split the data into train and test sets
-    # X = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
-
-    # X.columns = [s.replace(" ", "_") for s in X.columns.tolist()]
-    # Передача датасета и преобразование
-    scaled_features = scaler.transform(df[columns_need])
-
-    # Конвертация в табличный формат
-    X = pd.DataFrame(data=scaled_features,
-                     columns=df[columns_need].columns)
-
-    X.columns = [s.replace(" ", "_") for s in X.columns.tolist()]
-
-    y = df[['binary_target']].values
-
-    class_counts = df[['binary_target']].value_counts()
-    scale_pos_weight = class_counts[0] / class_counts[1]
-
-    y = np.ravel(y)
-    # y_train = df[['multi_target']]
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # # Wrap the classifier in SelectFromModel
-    # feature_selector = SelectFromModel(model)
-    # # Define the pipeline
-    # pipeline = Pipeline([
-    #     ('preprocessor', preprocessor),
-    #     ('feature_selector', feature_selector),
-    #     ('model', model)
-    # ])
-
-    print(f"Feature Selection with Recursive Feature Elimination (RFE) {datetime.now()}")
-
-    # Perform 5-fold cross-validation to evaluate the preprocessor
-    cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-    # min_features_to_select = 5,
-    # Feature Selection with Recursive Feature Elimination (RFE) random_state=42,
-    selector = RFECV(model, step=1, cv=cv, n_jobs=-1, verbose=1)
-    selector = selector.fit(X, y)
-    selected_features = X.columns[selector.support_]
-    with open(filename, 'a+') as file:
-        file.write(f"Отобранные факторы: {selected_features}\n")
-
-    pickle.dump(selector, open(f'RFECV_{model_name}{version}.pkl', 'wb'))
-
-    X_train = X_train[selected_features]
-    X_test = X_test[selected_features]
-
-    # model = RandomForestClassifier(class_weight="balanced_subsample", warm_start=True, verbose=True, random_state=42, n_jobs=-1)
-
-    # # Define the pipeline
-    # pipeline = Pipeline([
-    #     ('preprocessor', preprocessor),
-    #     ('model', model)
-    # ])
-
-    cv_results = cross_validate(model, X_train, y_train, cv=cv, scoring=['accuracy', 'precision', 'recall', 'f1', 'roc_auc'], n_jobs=-1, verbose=1)
-    print(f"CV Fit time: {cv_results['fit_time']}")
-    print(f"CV Score time: {cv_results['score_time']}")
-    print('\nCROSS VALIDATION RESULTS\n')
-
-    # result_valid_df = pd.DataFrame(index=models.keys(), columns = ['Accuracy', 'Precision', 'Recall', 'F1', 'ROC-AUC'])
-
-    result_valid_df.loc[model_name, 'Accuracy'] = round(cv_results['test_accuracy'].mean(), 4)
-    result_valid_df.loc[model_name, 'Precision'] = round(cv_results['test_precision'].mean(), 4)
-    result_valid_df.loc[model_name, 'Recall'] = round(cv_results['test_recall'].mean(), 4)
-    result_valid_df.loc[model_name, 'F1'] = round(cv_results['test_f1'].mean(), 4)
-    result_valid_df.loc[model_name, 'ROC-AUC'] = round(cv_results['test_roc_auc'].mean(), 4)
-    print(result_valid_df.loc[model_name, :])
-    with open(filename, 'a+') as file:
-        file.write(f"Метрики на валидации: \n{result_valid_df.loc[model_name, :]}\n")
-
-    # Perform hyperparameter tuning using grid search
-    param_grid = param_grids[model_name]
-    grid_search = GridSearchCV(model, param_grid, cv=3, refit='recall', scoring=['accuracy', 'precision', 'recall', 'f1', 'roc_auc'], n_jobs=-1)
-    grid_search.fit(X_train, y_train)
-
-    # Print the best hyperparameters
-    print("Best hyperparameters:")
-    print(grid_search.best_params_)
-    with open(filename, 'a+') as file:
-        file.write(f"Значения гиперпараметров: \n{grid_search.best_params_}\n")
-
-    model = grid_search.best_estimator_
-
-    model.fit(X_train, y_train)
-
-    # Predict on the test set
-    # y_pred = grid_search.best_estimator_.predict(X_test)
-
-    y_pred = model.predict(X_test)
-    # Calculate evaluation metrics
-    results = {}
-    for metric_name, metric_func in metrics.items():
-        if metric_name == 'ROC-AUC':
-            # results[metric_name] = roc_auc_score(y_test, grid_search.best_estimator_.predict_proba(X_test)[:, 1])
-            results[metric_name] = roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])
-        else:
-            results[metric_name] = metric_func(y_test, y_pred)
-
-    print('\nTEST RESULTS\n')
-    # Update results DataFrame
-    result_test_df.loc[model_name, :] = results
-    print(result_test_df.loc[model_name, :])
-    result_test_df = result_test_df.apply(round).sort_values(by='ROC-AUC', ascending=False)
-
-    with open(filename, 'a+') as file:
-        file.write(f"Метрики на тесте при обучении: \n{result_test_df.loc[model_name, :]}\n")
-
-    # cv_res = pd.DataFrame.from_dict(grid_search.cv_results_)
-    # best_id_model = cv_res.sort_values(by='rank_test_roc_auc').head(1).index[0]
-    #
-    # result_valid_df = pd.DataFrame(index=models.keys(), columns = ['mean_test_accuracy', 'mean_test_precision', 'mean_test_recall', 'mean_test_f1', 'mean_test_roc_auc'])
-    #
-    # result_valid_df.loc[model_name, 'Accuracy'] = round(cv_res.loc[best_id_model, 'mean_test_accuracy'], 4)
-    # result_valid_df.loc[model_name, 'Precision'] = round(cv_res.loc[best_id_model, 'mean_test_precision'], 4)
-    # result_valid_df.loc[model_name, 'Recall'] = round(cv_res.loc[best_id_model, 'mean_test_recall'], 4)
-    # result_valid_df.loc[model_name, 'F1'] = round(cv_res.loc[best_id_model, 'mean_test_f1'], 4)
-    # result_valid_df.loc[model_name, 'ROC-AUC'] = round(cv_res.loc[best_id_model, 'mean_test_roc_auc'], 4)
-    end = datetime.now()
-    print(f"\nFULL TRAINING TIME {model_name} : {end-start}\n\n")
-
-    pickle.dump(model, open(f'{model_name}{version}.pkl', 'wb'))
-
-result_test_df = result_test_df.astype('float64').apply(lambda x: round(x, 4))
-result_valid_df = result_valid_df.astype('float64').apply(lambda x: round(x, 4))
 
 # 'Расход на входе(л/с)',
 #TEST 174 and plot results
@@ -232,13 +94,28 @@ test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
 # Iterate over models
 for model_name, model in models.items():
     if model_name not in ['HistGB']:
+        with open(filename, 'a+') as file:
+            file.write(f"Модель: {model_name}\n")
 
-        df = pd.read_csv('data/prep_data_test_174_new.csv')  # Split the data into train and test sets
+        df = pd.read_csv('data/07/prep_data_target_11.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
         # X_test = df[columns_need]
         # Нормализация данных
+        try:
+            df.rename(columns={
+                'Момент на ключе ZQ/ГКШ(кН*м)': 'Момент на ключе(кН*м)',
+                'Ур.1 долив.(м3)': 'Уровень(м3)',
+                'Ур.2 воронка(м3)': 'Уровень(м3).1',
+                'Ур.3 рабоч.2(м3)': 'Уровень(м3).3',
+                'Ур.4 рабоч.1(м3)': 'Уровень(м3).2',
+                'Момент на маш.ключе(TQ)': 'Момент на маш.ключе(кН*м).1',
+                'Температура окр. среды(C)': 'Температура окр.среды(C)'
+            }, inplace=True)
+        except Exception:
+            print('Ошибка при переименовании столбцов')
+
         scaled_features = scaler.transform(df[columns_need])
 
         # Конвертация в табличный формат
@@ -251,7 +128,7 @@ for model_name, model in models.items():
             'target': 'binary_target'
         }
 
-        df.rename(columns=column_labels_index, inplace=True)
+        df.rename(columns=column_labels_index, inplace = True)
 
         # X_test.columns = [s.replace(" ", "_") for s in X_test.columns.tolist()]
 
@@ -370,3 +247,4 @@ for model_name, model in models.items():
         plt.show()
 
 test_df = test_df.astype('float64').apply(lambda x: round(x, 4))
+
