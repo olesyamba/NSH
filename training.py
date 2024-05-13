@@ -200,7 +200,7 @@ test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
 for model_name, model in models.items():
     if model_name not in ['HistGB']:
 
-        df = pd.read_csv('test_data_174.csv')  # Split the data into train and test sets
+        df = pd.read_csv('../data/test_data_174.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
@@ -324,7 +324,7 @@ test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
 for model_name, model in models.items():
     if model_name in ['CatBoost']:
 
-        df = pd.read_csv('test_data_174.csv')  # Split the data into train and test sets
+        df = pd.read_csv('../data/test_data_174.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
