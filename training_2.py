@@ -56,8 +56,8 @@ param_grids = {
     # 'SVM': {'C': [0.1, 1, 10], 'gamma': [0.1, 0.01, 0.001], 'kernel': ['linear', 'rbf']}, # 1, 10, 100
     'RandomForest': {'n_estimators': [100, 200, 300], 'max_depth': [None, 10, 20]},
     # 'LightGBM': {'boosting_type': ['gbdt', 'rf'], 'learning_rate': [0.01, 0.1, 0.3], 'n_estimators': [100, 200, 300], 'max_depth': [None, 10, 20]},
-    'XGboost' : {"max_depth": [2, 4, 6], "n_estimators": [50, 100, 200], 'learning_rate': [0.01, 0.1, 0.3]},
-    'CatBoost': {'max_depth': [None, 10, 20], 'learning_rate':[0.01, 0.1, 0.3]},
+    'XGboost' : {"max_depth": [None, 2, 6, 10, 20], "n_estimators": [50, 100, 200], 'learning_rate': [0.005, 0.01, 0.1, 0.3]},
+    'CatBoost': {'max_depth': [None, 2, 6, 10, 20], 'learning_rate':[0.005, 0.01, 0.1, 0.3]},
     # 'HistGB' : {"max_depth": [2, 4, 6], "n_estimators": [50, 100, 200], 'learning_rate': [0.01, 0.1, 0.3]}
 }
 
@@ -72,11 +72,11 @@ metrics = {
 columns_need = ['Вес на крюке(тс)', 'Давление в манифольде(МПа)',
                 'Положение крюкоблока(м)',
                 'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
-                'Расход на входе(л/с)']
-#               'Температура окр.среды(C)',, 'Глубина инструмента(м)'
-#               'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
-#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3',
-#               'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1',
+                'Расход на входе(л/с)',
+              'Температура окр.среды(C)', 'Глубина инструмента(м)',
+              'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
+              'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1']
+#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
 
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
@@ -201,8 +201,8 @@ for model_name, model in models.items():
     # Update results DataFrame
     result_test_df.loc[model_name, :] = results
     print(result_test_df.loc[model_name, :])
-    result_test_df = result_test_df.apply(round).sort_values(by='ROC-AUC', ascending=False)
-
+    # result_test_df = result_test_df.apply(round).sort_values(by='ROC-AUC', ascending=False)
+    result_test_df = result_test_df.astype('float64').apply(lambda x: round(x, 4)).sort_values(by='ROC-AUC', ascending=False)
     with open(filename, 'a+') as file:
         file.write(f"Метрики на тесте при обучении: \n{result_test_df.loc[model_name, :]}\n")
 

@@ -35,10 +35,10 @@ y = df[['binary_target']].values
 
 class_counts = df[['binary_target']].value_counts()
 scale_pos_weight = class_counts[0] / class_counts[1]
-version = f'_5_7'
+version = f'_5_13'
 version_to_write = f'_{str(datetime.now().month)}_{str(datetime.now().day)}'
-what_is_new = 'new_data_11'
-filename = f"Отчет_{what_is_new}_{version_to_write}.txt"
+what_is_new = 'remont_all_factors'
+filename = f"Отчет_{what_is_new}_{version}.txt"
 
 models = {
     'Decision Tree' : DecisionTreeClassifier(random_state=42, class_weight="balanced"),
@@ -51,13 +51,14 @@ models = {
 }
 
 # Define hyperparameters grid for each model
+# Define hyperparameters grid for each model
 param_grids = {
     'Decision Tree' : {'max_depth': [None, 10, 20], 'min_samples_leaf' : [3, 5, 10], 'max_features' : [5, 10, 15] },
     # 'SVM': {'C': [0.1, 1, 10], 'gamma': [0.1, 0.01, 0.001], 'kernel': ['linear', 'rbf']}, # 1, 10, 100
     'RandomForest': {'n_estimators': [100, 200, 300], 'max_depth': [None, 10, 20]},
     # 'LightGBM': {'boosting_type': ['gbdt', 'rf'], 'learning_rate': [0.01, 0.1, 0.3], 'n_estimators': [100, 200, 300], 'max_depth': [None, 10, 20]},
-    'XGboost' : {"max_depth": [2, 4, 6], "n_estimators": [50, 100, 200], 'learning_rate': [0.01, 0.1, 0.3]},
-    'CatBoost': {'max_depth': [None, 10, 20], 'learning_rate':[0.01, 0.1, 0.3]},
+    'XGboost' : {"max_depth": [None, 2, 6, 10, 20], "n_estimators": [50, 100, 200], 'learning_rate': [0.005, 0.01, 0.1, 0.3]},
+    'CatBoost': {'max_depth': [None, 2, 6, 10, 20], 'learning_rate':[0.005, 0.01, 0.1, 0.3]},
     # 'HistGB' : {"max_depth": [2, 4, 6], "n_estimators": [50, 100, 200], 'learning_rate': [0.01, 0.1, 0.3]}
 }
 
@@ -72,11 +73,11 @@ metrics = {
 columns_need = ['Вес на крюке(тс)', 'Давление в манифольде(МПа)',
                 'Положение крюкоблока(м)',
                 'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
-                'Расход на входе(л/с)']
-#               'Температура окр.среды(C)',, 'Глубина инструмента(м)'
-#               'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
-#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3',
-#               'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1',
+                'Расход на входе(л/с)',
+              'Температура окр.среды(C)', 'Глубина инструмента(м)',
+              'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
+              'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1']
+#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
 
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
@@ -97,7 +98,7 @@ for model_name, model in models.items():
         with open(filename, 'a+') as file:
             file.write(f"Модель: {model_name}\n")
 
-        df = pd.read_csv('data/07/prep_data_target_11.csv')  # Split the data into train and test sets
+        df = pd.read_csv('data/07/prep_data_remont_target_7.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
@@ -187,7 +188,7 @@ for model_name, model in models.items():
         test_df = round(test_df, 4).sort_values(by='ROC-AUC', ascending=False)
 
         with open(filename, 'a+') as file:
-            file.write(f"Метрики на тесте по 174 скважине: \n{test_df.loc[model_name, :]}\n")
+            file.write(f"Метрики на тесте по 11 бригаде: \n{test_df.loc[model_name, :]}\n")
 
         end = datetime.now()
         print(f"\nFULL TIME {model_name} : {end-start}\n\n")
