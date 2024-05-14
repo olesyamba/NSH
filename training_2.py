@@ -46,7 +46,7 @@ models = {
     'RandomForest': RandomForestClassifier(class_weight="balanced_subsample", random_state=42, n_jobs=-1),
     # 'LightGBM': LGBMClassifier(class_weight="balanced", reg_lambda = 0.5, objective='binary', random_state=42, n_jobs = -1),
     'XGboost' : xgb.XGBClassifier(scale_pos_weight=scale_pos_weight, reg_lambda = 0.5, objective='binary:logistic', random_state=42, n_jobs = -1),
-    'CatBoost': CatBoostClassifier(random_state=42, silent=True, iterations=500, loss_function='Logloss', eval_metric='Recall', early_stopping_rounds=20),
+    'CatBoost': CatBoostClassifier(random_state=42, silent=True, iterations=500, loss_function='Logloss', eval_metric='Recall', early_stopping_rounds=20, allow_writing_files=False),
     # 'HistGB' : HistGradientBoostingClassifier(n_iter_no_change=3, scoring='roc_auc',class_weight='balanced', random_state=42)
 }
 
@@ -69,14 +69,14 @@ metrics = {
     'F1': f1_score,
     'ROC-AUC': roc_auc_score
 }
-columns_need = ['Вес на крюке(тс)', 'Давление в манифольде(МПа)',
+columns_need = ['Вес на крюке(тс)',
                 'Положение крюкоблока(м)',
                 'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
                 'Расход на входе(л/с)',
               'Температура окр.среды(C)', 'Глубина инструмента(м)',
-              'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
-              'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1']
-#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
+              'Нагрузка на долото(тс)']
+              # ,'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1', 'Глубина забоя(м)',
+#               ,  'Наработка каната(т*км)','Давление в манифольде(МПа)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
 
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
@@ -234,6 +234,7 @@ for model_name, model in models.items():
     if model_name not in ['HistGB']:
 
         df = pd.read_csv('data/prep_data_test_174_new.csv')  # Split the data into train and test sets
+        df = df.dropna()
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need

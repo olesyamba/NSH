@@ -35,7 +35,7 @@ y = df[['binary_target']].values
 
 class_counts = df[['binary_target']].value_counts()
 scale_pos_weight = class_counts[0] / class_counts[1]
-version = f'_5_13'
+version = f'_5_14'
 version_to_write = f'_{str(datetime.now().month)}_{str(datetime.now().day)}'
 what_is_new = 'remont_all_factors'
 filename = f"Отчет_{what_is_new}_{version}.txt"
@@ -70,14 +70,14 @@ metrics = {
     'F1': f1_score,
     'ROC-AUC': roc_auc_score
 }
-columns_need = ['Вес на крюке(тс)', 'Давление в манифольде(МПа)',
+columns_need = ['Вес на крюке(тс)',
                 'Положение крюкоблока(м)',
                 'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
                 'Расход на входе(л/с)',
               'Температура окр.среды(C)', 'Глубина инструмента(м)',
-              'Нагрузка на долото(тс)', 'Глубина забоя(м)', 'Наработка каната(т*км)',
-              'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1']
-#               'Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
+              'Нагрузка на долото(тс)',  'Наработка каната(т*км)']
+              # ,'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1','Глубина забоя(м)',
+#               'Давление в манифольде(МПа)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
 
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
@@ -98,7 +98,7 @@ for model_name, model in models.items():
         with open(filename, 'a+') as file:
             file.write(f"Модель: {model_name}\n")
 
-        df = pd.read_csv('data/07/prep_data_remont_target_7.csv')  # Split the data into train and test sets
+        df = pd.read_csv('data/07/prep_data_target_11.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
