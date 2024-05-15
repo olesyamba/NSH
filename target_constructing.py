@@ -78,9 +78,10 @@ scan_folder("data/27/ББ7")  # Insert parent direcotry's path
 data = pd.DataFrame()
 parent = 'data/07/ББ7/ББ7'
 # iterate over all the files in directory 'parent'
+n = 0
 for file_name in os.listdir(parent):
     if file_name.endswith(".xlsx"):
-        n = 0
+
         # if it's a txt file, print its name (or do whatever you want)
         print(f'Open {file_name}')
         data_name = pd.read_excel(f'{parent}/{file_name}', header=0,
