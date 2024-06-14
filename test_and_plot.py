@@ -3,7 +3,7 @@ from datetime import datetime
 import plotly.express as px
 import plotly.io as pio
 pio.renderers.default = "browser"
-import datetime
+# import datetime
 from xlrd.xldate import xldate_as_datetime
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -100,11 +100,11 @@ test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
 # ['RandomForest', 'XGboost', 'CatBoost']
 # Iterate over models
 for model_name, model in models.items():
-    if model_name in ['CatBoost']:
+    if model_name :# in ['CatBoost']
         with open(filename, 'a+') as file:
             file.write(f"Модель: {model_name}\n")
 
-        df = pd.read_csv('data/07/prep_data_target_11.csv')  # Split the data into train and test sets
+        df = pd.read_csv('data/prep_data_test_174_new.csv')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
@@ -260,7 +260,7 @@ test_df = test_df.astype('float64').apply(lambda x: round(x, 4))
 
 
 # Generate sample target data (binary column with 0 or 1)
-target_test = pd.Series(y_test,
+target_test = pd.Series(y_test[:,0],
                     index=df.index)
 
 # Find indices where target is 1
@@ -339,14 +339,14 @@ for i in range(4):
                         index=df.index)
         # ts4 = pd.Series(data_new_interval['Глубина инструмента(м)'],
         # index=data_new_interval.index)
-        ts5 = pd.Series(df['Уровень(м3)'],
-                        index=df.index)
-        ts6 = pd.Series(df['Уровень(м3).1'],
-                        index=df.index)
-        ts7 = pd.Series(df['Уровень(м3).2'],
-                        index=df.index)
-        ts8 = pd.Series(df['Уровень(м3).3'],
-                        index=df.index)
+        # ts5 = pd.Series(df['Уровень(м3)'],
+        #                 index=df.index)
+        # ts6 = pd.Series(df['Уровень(м3).1'],
+        #                 index=df.index)
+        # ts7 = pd.Series(df['Уровень(м3).2'],
+        #                 index=df.index)
+        # ts8 = pd.Series(df['Уровень(м3).3'],
+        #                 index=df.index)
         # ts9 = pd.Series(data_new_interval['Момент на маш.ключе(кН*м)'],
         #                 index=data_new_interval.index)
         # ts10 = pd.Series(data_new_interval['Момент на маш.ключе(кН*м).1'],
@@ -368,14 +368,14 @@ for i in range(4):
                                   name='Наработка каната(т*км)'), row=i + 1, col=1)
         # fig.add_trace(go.Scatter(x=ts4.index, y=ts4.values, mode='lines',
         # name='Глубина инструмента(м)'), row=i+1, col=1)
-        fig.add_trace(go.Scatter(x=ts5.index, y=ts5.values, mode='lines',
-                                  name='Уровень(м3)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts6.index, y=ts6.values, mode='lines',
-                                  name='Уровень(м3).1'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts7.index, y=ts7.values, mode='lines',
-                                  name='Уровень(м3).2'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts8.index, y=ts8.values, mode='lines',
-                                  name='Уровень(м3).3'), row=i + 1, col=1)
+        # fig.add_trace(go.Scatter(x=ts5.index, y=ts5.values, mode='lines',
+        #                           name='Уровень(м3)'), row=i + 1, col=1)
+        # fig.add_trace(go.Scatter(x=ts6.index, y=ts6.values, mode='lines',
+        #                           name='Уровень(м3).1'), row=i + 1, col=1)
+        # fig.add_trace(go.Scatter(x=ts7.index, y=ts7.values, mode='lines',
+        #                           name='Уровень(м3).2'), row=i + 1, col=1)
+        # fig.add_trace(go.Scatter(x=ts8.index, y=ts8.values, mode='lines',
+        #                           name='Уровень(м3).3'), row=i + 1, col=1)
         # fig.add_trace(go.Scatter(x=ts9.index, y=ts9.values, mode='lines',
         #                           name='Момент на маш.ключе(кН*м)'), row=i + 1, col=1)
         # fig.add_trace(go.Scatter(x=ts10.index, y=ts10.values, mode='lines',
