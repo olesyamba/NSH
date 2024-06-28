@@ -35,8 +35,8 @@ y = df[['binary_target']].values
 class_counts = df[['binary_target']].value_counts()
 scale_pos_weight = class_counts[0] / class_counts[1]
 version = f'_{str(datetime.now().month)}_{str(datetime.now().day)}'
-key_metric = 'recall'
-what_is_new = 'recall'
+key_metric = 'precision'
+what_is_new = 'precision'
 filename = f"Отчет_{what_is_new}_{version}.txt"
 
 
@@ -46,7 +46,7 @@ models = {
     'RandomForest': RandomForestClassifier(class_weight="balanced_subsample", random_state=42, n_jobs=-1),
     # 'LightGBM': LGBMClassifier(class_weight="balanced", reg_lambda = 0.5, objective='binary', random_state=42, n_jobs = -1),
     'XGboost' : xgb.XGBClassifier(scale_pos_weight=scale_pos_weight, reg_lambda = 0.5, objective='binary:logistic', random_state=42, n_jobs = -1),
-    'CatBoost': CatBoostClassifier(random_state=42, silent=True, iterations=500, loss_function='Logloss', eval_metric='Recall', early_stopping_rounds=20, allow_writing_files=False),
+    'CatBoost': CatBoostClassifier(random_state=42, silent=True, iterations=500, loss_function='Logloss', eval_metric='Precision', early_stopping_rounds=20, allow_writing_files=False),
     # 'HistGB' : HistGradientBoostingClassifier(n_iter_no_change=3, scoring='roc_auc',class_weight='balanced', random_state=42)
 }
 
@@ -73,11 +73,11 @@ metrics = {
 columns_need = ['Вес на крюке(тс)',
                 'Положение крюкоблока(м)',
                 'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
-                'Расход на входе(л/с)']
+                'Расход на входе(л/с)','Давление в манифольде(МПа)']
               # ,'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1', 'Глубина забоя(м)',,
 #               'Температура окр.среды(C)', 'Глубина инструмента(м)',
 #               'Нагрузка на долото(тс)'
-#               ,  'Наработка каната(т*км)','Давление в манифольде(МПа)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
+#               ,  'Наработка каната(т*км)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
 
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
@@ -172,7 +172,7 @@ for model_name, model in models.items():
 
     # Perform hyperparameter tuning using grid search
     param_grid = param_grids[model_name]
-    grid_search = GridSearchCV(model, param_grid, cv=3, refit='recall', scoring=['accuracy', 'precision', 'recall', 'f1', 'roc_auc'], n_jobs=-1)
+    grid_search = GridSearchCV(model, param_grid, cv=3, refit='precision', scoring=['accuracy', 'precision', 'recall', 'f1', 'roc_auc'], n_jobs=-1)
     grid_search.fit(X_train, y_train)
 
     # Print the best hyperparameters
