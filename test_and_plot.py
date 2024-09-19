@@ -41,17 +41,26 @@ y = df[['binary_target']].values
 
 class_counts = df[['binary_target']].value_counts()
 scale_pos_weight = class_counts[0] / class_counts[1]
-version = f'_5_14'
+version = f'_5_14'# f'_6_19'
 version_to_write = f'_{str(datetime.now().month)}_{str(datetime.now().day)}'
 what_is_new = 'remont_all_factors'
 filename = f"Отчет_{what_is_new}_{version}.txt"
-
+data_name = 'prep_data_target_11.csv' # 'prep_data_test_174_new.csv'
+# models = {
+#     'Decision Tree' : DecisionTreeClassifier(random_state=42, class_weight="balanced"),
+#     # 'SVM': SVC(class_weight="balanced",  random_state=42, probability=True),
+#     'RandomForest': RandomForestClassifier(class_weight="balanced_subsample", random_state=42, n_jobs=-1),
+#     # 'LightGBM': LGBMClassifier(class_weight="balanced", reg_lambda = 0.5, objective='binary', random_state=42, n_jobs = -1),
+#     'XGboost' : xgb.XGBClassifier(scale_pos_weight=scale_pos_weight, reg_lambda = 0.5, objective='binary:logistic', random_state=42, n_jobs = -1),
+#     'CatBoost': CatBoostClassifier(random_state=42, silent=True, iterations=500, loss_function='Logloss', eval_metric='Recall', early_stopping_rounds=20),
+#     # 'HistGB' : HistGradientBoostingClassifier(n_iter_no_change=3, scoring='roc_auc',class_weight='balanced', random_state=42)
+# }
 models = {
-    'Decision Tree' : DecisionTreeClassifier(random_state=42, class_weight="balanced"),
+    # 'Decision Tree' : DecisionTreeClassifier(random_state=42, class_weight="balanced"),
     # 'SVM': SVC(class_weight="balanced",  random_state=42, probability=True),
-    'RandomForest': RandomForestClassifier(class_weight="balanced_subsample", random_state=42, n_jobs=-1),
+    # 'RandomForest': RandomForestClassifier(class_weight="balanced_subsample", random_state=42, n_jobs=-1),
     # 'LightGBM': LGBMClassifier(class_weight="balanced", reg_lambda = 0.5, objective='binary', random_state=42, n_jobs = -1),
-    'XGboost' : xgb.XGBClassifier(scale_pos_weight=scale_pos_weight, reg_lambda = 0.5, objective='binary:logistic', random_state=42, n_jobs = -1),
+    # 'XGboost' : xgb.XGBClassifier(scale_pos_weight=scale_pos_weight, reg_lambda = 0.5, objective='binary:logistic', random_state=42, n_jobs = -1),
     'CatBoost': CatBoostClassifier(random_state=42, silent=True, iterations=500, loss_function='Logloss', eval_metric='Recall', early_stopping_rounds=20),
     # 'HistGB' : HistGradientBoostingClassifier(n_iter_no_change=3, scoring='roc_auc',class_weight='balanced', random_state=42)
 }
@@ -76,14 +85,27 @@ metrics = {
     'F1': f1_score,
     'ROC-AUC': roc_auc_score
 }
-columns_need = ['Вес на крюке(тс)',
-                'Положение крюкоблока(м)',
-                'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
-                'Расход на входе(л/с)',
-              'Температура окр.среды(C)', 'Глубина инструмента(м)',
-              'Нагрузка на долото(тс)',  'Наработка каната(т*км)']
-              # ,'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1','Глубина забоя(м)',
-#               'Давление в манифольде(МПа)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
+if version == '_6_19':
+    # for 6_19
+    columns_need = ['Вес на крюке(тс)',
+                    'Положение крюкоблока(м)',
+                    'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
+                    'Расход на входе(л/с)',
+                   'Давление в манифольде(МПа)']
+        # 'Температура окр.среды(C)' , 'Глубина инструмента(м)',
+        #           'Нагрузка на долото(тс)',  'Наработка каната(т*км)']
+                  # ,'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1','Глубина забоя(м)',
+    #               'Давление в манифольде(МПа)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
+elif version =='_5_14':
+    #  for 5_14
+    columns_need = ['Вес на крюке(тс)',
+                    'Положение крюкоблока(м)',
+                    'Момент на СВП(кН*м)', 'Обороты СВП(об/мин)',
+                    'Расход на входе(л/с)',
+                    'Температура окр.среды(C)' , 'Глубина инструмента(м)',
+                    'Нагрузка на долото(тс)',  'Наработка каната(т*км)']
+                  # ,'Ходы насоса(ход/мин)', 'Ходы насоса(ход/мин).1','Глубина забоя(м)',
+    #               'Давление в манифольде(МПа)','Уровень(м3)', 'Уровень(м3).1', 'Уровень(м3).2', 'Уровень(м3).3'
 
 # Initialize DataFrame to store results
 result_test_df = pd.DataFrame(index=models.keys(), columns=metrics.keys())
@@ -103,8 +125,9 @@ for model_name, model in models.items():
     if model_name :# in ['CatBoost']
         with open(filename, 'a+') as file:
             file.write(f"Модель: {model_name}\n")
-
-        df = pd.read_csv('data/prep_data_test_174_new.csv')  # Split the data into train and test sets
+        # df = pd.read_csv(f'data/{data_name}')
+        # df = df.dropna()
+        df = pd.read_csv(f'data/07/{data_name}')  # Split the data into train and test sets
         # df = pd.DataFrame(preprocessor.fit_transform(df[columns_need]))
         # X_test = pd.DataFrame(preprocessor.fit_transform(df[columns_need]), columns=columns_need)
         # df.columns = columns_need
@@ -148,14 +171,14 @@ for model_name, model in models.items():
         print(f"Model: {model_name}\n{start}")
 
         # Correcting X-matrix with results of RFECV
-        with open(f'RFECV_{model_name}{version}.pkl', 'rb') as f:
+        with open(rf'models\RFECV_{model_name}{version}.pkl', 'rb') as f:
             selector = pickle.load(f)
 
         selected_features = X_test.columns[selector.support_]
         X_test = X_test[selected_features]
 
         # Importing model
-        with open(f'{model_name}{version}.pkl', 'rb') as f:
+        with open(rf'models\{model_name}{version}.pkl', 'rb') as f:
             model = pickle.load(f)
 
 
@@ -256,187 +279,180 @@ for model_name, model in models.items():
 test_df = test_df.astype('float64').apply(lambda x: round(x, 4))
 
 
+df['datetime'] = pd.to_datetime(df['datetime'], format='%Y-%m-%d %H:%M:%S')
+df = df.set_index('datetime')
+df['y_test'] = y_test[:, 0]
+df['y_pred'] = y_pred
 
 
+intervals_for_plot = [
+                        {'start' : pd.to_datetime('2024-02-05 04:36:00'),
+                         'end' : pd.to_datetime('2024-02-07 11:56:00')},
+                        {'start' : pd.to_datetime('2024-02-09 14:45:00'),
+                         'end' : pd.to_datetime('2024-02-12 05:00:00')},
+                        {'start' : pd.to_datetime('2024-02-15 00:22:00'),
+                         'end' : pd.to_datetime('2024-02-16 23:53:00')}
+                     ]
 
-# Generate sample target data (binary column with 0 or 1)
-target_test = pd.Series(y_test[:,0],
-                    index=df.index)
+for interval_dict in intervals_for_plot:
 
-# Find indices where target is 1
-target_test_indices = target_test[target_test == 1].index
+    start_date = interval_dict['start']
+    end_date = interval_dict['end']
 
-target_pred = pd.Series(y_pred,
-                    index=df.index)
+    df_interval = df[df.index.to_series().between(start_date, end_date)]
 
-# Find indices where target is 1
-target_pred_indices = target_pred[target_pred == 1].index
+    # Generate sample target data (binary column with 0 or 1)
+    target_test = pd.Series(df_interval['y_test'],
+                            index=df_interval.index)
 
+    target_pred = pd.Series(df_interval['y_pred'],
+                            index=df_interval.index)
 
+    df_interval['sum_hod_nasosa'] = df_interval['Ходы насоса(ход/мин)'] + df_interval['Ходы насоса(ход/мин).1']
+    df_interval['moving_average_rashod'] = df_interval['sum_hod_nasosa'].rolling(window=30).mean()
+    df_interval['moving_average_rashod_diff'] = df_interval['moving_average_rashod'].diff()
 
-fig = go.Figure()
-
-# Define zones for background coloring
-y_zones = [0, 20, 40, np.inf]
-zone_colors = ['rgba(255, 255, 255, 0)', 'rgba(200, 200, 255, 0.5)', 'rgba(255, 200, 200, 0.5)']
-# Create figure with subplots
-fig = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.08)
-# Add original time series traces to each subplot
-for i in range(4):
-    # Add new y-axis for target
-
-    if i == 0:
-        # ts = pd.Series(data_new_interval['Скорость проходки(м/ч)'],
-        #                 index=data_new_interval.index)
-        ts1 = pd.Series(df['Глубина забоя(м)'],
-                        index=df.index)
-        ts2 = pd.Series(df['Нагрузка на долото(тс)'],
-                        index=df.index)
-        ts3 = pd.Series(df['Обороты СВП(об/мин)'],
-                        index=df.index)
-        ts4 = pd.Series(df['Глубина инструмента(м)'],
-                        index=df.index)
-        # ts9 = pd.Series(data_new_interval['Момент на роторе(кНм)'],
-        #                 index=data_new_interval.index)
-        # ts10 = pd.Series(data_new_interval['Расход на входе(л/с)'],
-        #                   index=data_new_interval.index)
-        ts11 = pd.Series(df['Момент на СВП(кН*м)'],
-                          index=df.index)
-        ts12 = pd.Series(df['Положение крюкоблока(м)'],
-                          index=df.index)
-        ts13 = pd.Series(df['Вес на крюке(тс)'],
-                          index=df.index)
-
-        # fig.add_trace(go.Scatter(x=ts.index, y=ts.values, mode='lines',
-        #                           name='Скорость проходки(м/ч)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts1.index, y=ts1.values, mode='lines',
-                                  name='Глубина забоя(м)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts2.index, y=ts2.values, mode='lines',
-                                  name='Нагрузка на долото(тс)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts3.index, y=ts3.values, mode='lines',
-                                  name='Обороты СВП(об/мин)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts4.index, y=ts4.values, mode='lines',
-                                  name='Глубина инструмента(м)'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts9.index, y=ts9.values, mode='lines',
-        #                          name='Момент на роторе(кНм)'), row=i+1, col=1)
-        # fig.add_trace(go.Scatter(x=ts10.index, y=ts10.values, mode='lines',
-        #                           name='Расход на входе(л/с)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts11.index, y=ts11.values, mode='lines',
-                                  name='Момент на СВП(кН*м)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts12.index, y=ts12.values, mode='lines',
-                                  name='Положение крюкоблока(м)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts13.index, y=ts13.values, mode='lines',
-                                  name='Вес на крюке(тс)'), row=i + 1, col=1)
-    elif i == 1:
-
-        # ts = pd.Series(data_new_interval['Скорость проходки(м/ч)'],
-        # index=data_new_interval.index)
-        # ts1 = pd.Series(data_new_interval['Момент на ключе(кН*м)'],
-        #                 index=data_new_interval.index)
-        ts2 = pd.Series(df['Нагрузка на долото(тс)'],
-                        index=df.index)
-        ts3 = pd.Series(df['Наработка каната(т*км)'],
-                        index=df.index)
-        # ts4 = pd.Series(data_new_interval['Глубина инструмента(м)'],
-        # index=data_new_interval.index)
-        # ts5 = pd.Series(df['Уровень(м3)'],
-        #                 index=df.index)
-        # ts6 = pd.Series(df['Уровень(м3).1'],
-        #                 index=df.index)
-        # ts7 = pd.Series(df['Уровень(м3).2'],
-        #                 index=df.index)
-        # ts8 = pd.Series(df['Уровень(м3).3'],
-        #                 index=df.index)
-        # ts9 = pd.Series(data_new_interval['Момент на маш.ключе(кН*м)'],
-        #                 index=data_new_interval.index)
-        # ts10 = pd.Series(data_new_interval['Момент на маш.ключе(кН*м).1'],
-        #                   index=data_new_interval.index)
-        # ts11 = pd.Series(data_new_interval['Скорость СПО(м/с)'],
-        #                   index=data_new_interval.index)
-        # ts12 = pd.Series(data_new_interval['Положение крюкоблока(м)'],
-        # index=data_new_interval.index)
-        # ts13 = pd.Series(data_new_interval['Вес на крюке(тс)'],
-        # index=data_new_interval.index)
-
-        # fig.add_trace(go.Scatter(x=ts.index, y=ts.values, mode='lines',
-        #                          name='Скорость проходки(м/ч)'), row=i+1, col=1)
-        # fig.add_trace(go.Scatter(x=ts1.index, y=ts1.values, mode='lines',
-                                  # name='Момент на ключе(кН*м)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts2.index, y=ts2.values, mode='lines',
-                                  name='Нагрузка на долото(тс)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts3.index, y=ts3.values, mode='lines',
-                                  name='Наработка каната(т*км)'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts4.index, y=ts4.values, mode='lines',
-        # name='Глубина инструмента(м)'), row=i+1, col=1)
-        # fig.add_trace(go.Scatter(x=ts5.index, y=ts5.values, mode='lines',
-        #                           name='Уровень(м3)'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts6.index, y=ts6.values, mode='lines',
-        #                           name='Уровень(м3).1'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts7.index, y=ts7.values, mode='lines',
-        #                           name='Уровень(м3).2'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts8.index, y=ts8.values, mode='lines',
-        #                           name='Уровень(м3).3'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts9.index, y=ts9.values, mode='lines',
-        #                           name='Момент на маш.ключе(кН*м)'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts10.index, y=ts10.values, mode='lines',
-        #                           name='Момент на маш.ключе(кН*м).1'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts11.index, y=ts11.values, mode='lines',
-                                  # name='Скорость СПО(м/с)'), row=i + 1, col=1)
-        # fig.add_trace(go.Scatter(x=ts12.index, y=ts12.values, mode='lines',
-        # name='Положение крюкоблока(м)'), row=i+1, col=1)
-        # fig.add_trace(go.Scatter(x=ts13.index, y=ts13.values, mode='lines',
-        # name='Вес на крюке(тс)'), row=i+1, col=1)
-    elif i == 2:
-
-        # ts = pd.Series(data_new_interval['Расход на входе(л/с)'],
-        #                 index=data_new_interval.index)
-        ts1 = pd.Series(df['Ходы насоса(ход/мин)'],
-                        index=df.index)
-        ts2 = pd.Series(df['Ходы насоса(ход/мин).1'],
-                        index=df.index)
-        ts3 = pd.Series(df['Давление в манифольде(МПа)'],
-                        index=df.index)
-        ts4 = pd.Series(df['Температура окр.среды(C)'],
-                        index=df.index)
-
-        # fig.add_trace(go.Scatter(x=ts.index, y=ts.values, mode='lines',
-        #                           name='Расход на входе(л/с)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts1.index, y=ts1.values, mode='lines',
-                                  name='Ходы насоса(ход/мин)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts2.index, y=ts2.values, mode='lines',
-                                  name='Ходы насоса(ход/мин).1'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts3.index, y=ts3.values, mode='lines',
-                                  name='Давление в манифольде(МПа)'), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=ts4.index, y=ts4.values, mode='lines',
-                                  name='Температура окр.среды(C)'), row=i + 1, col=1)
-    elif i == 3:
-        fig.add_trace(go.Scatter(x=target_test.index, y=target_test.values, mode='lines', name='test',
-                                  line=dict(color='green')), row=i + 1, col=1)
-        fig.add_trace(go.Scatter(x=target_pred.index, y=target_pred.values, mode='lines', name='test',
-                                  line=dict(color='red')), row=i + 1, col=1)
-
-for i in range(3):
-    # Add shapes for background zones
-    for j in range(len(y_zones) - 1):
-        fig.add_shape(
-            type="rect",
-            x0=df.index[0],
-            y0=y_zones[j],
-            x1=df.index[-1],
-            y1=y_zones[j + 1],
-            fillcolor=zone_colors[j],
-            layer="below",
-            line=dict(color="rgba(0, 0, 0, 0)")
-            , row=i+1, col=1
+    def conditions(row):
+        return (
+            (
+                (row['moving_average_rashod'] < 100)
+                and ((row['moving_average_rashod_diff'] < 0) or (row['moving_average_rashod_diff'] == 0))
+            )
         )
-    # Add horizontal lines at 20 and 40
-    for y in [20, 40]:
-        fig.add_shape(type="line",
-                      x0=df.index[0], y0=y,
-                      x1=df.index[-1], y1=y,
-                      line=dict(color="rgba(0,0,0,0.5)", width=1, dash="dash"),
-                      row=i+1, col=1
-                      )
+    # Apply conditions to create the target column
+    df_interval['ma_rashod_less_190'] = df_interval.apply(conditions, axis=1).astype(int)
+    df_interval['match'] = (df_interval['ma_rashod_less_190'] == df_interval['y_test'])
+
+    # Identify the start and end indices of each region
+    df_interval['group'] = (df_interval['match'] != df_interval['match'].shift()).cumsum()
+    regions = df_interval.reset_index().groupby('group').agg(
+        start_date=('datetime', 'first'),
+        end_date=('datetime', 'last'),
+        match=('match', 'first')
+    ).reset_index(drop=True)
+    fig = go.Figure()
+
+    # Define zones for background coloring
+    y_zones = [0, 20, 40, np.inf]
+    zone_colors = ['rgba(255, 255, 255, 0)', 'rgba(200, 200, 255, 0.5)', 'rgba(255, 200, 200, 0.5)']
+    # Create figure with subplots
+    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.08)
+    # Add original time series traces to each subplot
+    for i in range(4):
+        if i == 0:
+            ts2 = pd.Series(df_interval['Нагрузка на долото(тс)'],
+                            index=df_interval.index)
+            ts3 = pd.Series(df_interval['Обороты СВП(об/мин)'],
+                            index=df_interval.index)
+            ts11 = pd.Series(df_interval['Момент на СВП(кН*м)'],
+                             index=df_interval.index)
+            ts12 = pd.Series(df_interval['Положение крюкоблока(м)'],
+                             index=df_interval.index)
+            ts13 = pd.Series(df_interval['Вес на крюке(тс)'],
+                             index=df_interval.index)
+            ts2 = pd.Series(df_interval['Нагрузка на долото(тс)'],
+                            index=df_interval.index)
+
+            fig.add_trace(go.Scatter(x=ts2.index, y=ts2.values, mode='lines',
+                                     name='Нагрузка на долото(тс)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts3.index, y=ts3.values, mode='lines',
+                                     name='Обороты СВП(об/мин)'), row=i + 1, col=1)
+
+            fig.add_trace(go.Scatter(x=ts11.index, y=ts11.values, mode='lines',
+                                     name='Момент на СВП(кН*м)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts12.index, y=ts12.values, mode='lines',
+                                     name='Положение крюкоблока(м)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts13.index, y=ts13.values, mode='lines',
+                                     name='Вес на крюке(тс)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts2.index, y=ts2.values, mode='lines',
+                                     name='Нагрузка на долото(тс)'), row=i + 1, col=1)
+        # elif i == 1:
+        #
+        #     ts1 = pd.Series(df_interval['Глубина забоя(м)'],
+        #                     index=df_interval.index)
+        #     ts3 = pd.Series(df_interval['Наработка каната(т*км)'],
+        #                     index=df_interval.index)
+        #     ts4 = pd.Series(df_interval['Глубина инструмента(м)'],
+        #                     index=df_interval.index)
+        #
+        #     fig.add_trace(go.Scatter(x=ts3.index, y=ts3.values, mode='lines',
+        #                              name='Наработка каната(т*км)'), row=i + 1, col=1)
+        #     fig.add_trace(go.Scatter(x=ts1.index, y=ts1.values, mode='lines',
+        #                              name='Глубина забоя(м)'), row=i + 1, col=1)
+        #     fig.add_trace(go.Scatter(x=ts4.index, y=ts4.values, mode='lines',
+        #                              name='Глубина инструмента(м)'), row=i + 1, col=1)
+
+        elif i == 1:
+
+            ts = pd.Series(df_interval['Расход на входе(л/с)'],
+                           index=df_interval.index)
+            ts1 = pd.Series(df_interval['Ходы насоса(ход/мин)'],
+                            index=df_interval.index)
+            ts2 = pd.Series(df_interval['Ходы насоса(ход/мин).1'],
+                            index=df_interval.index)
+            ts3 = pd.Series(df_interval['Давление в манифольде(МПа)'],
+                            index=df_interval.index)
+            ts4 = pd.Series(df_interval['Температура окр.среды(C)'],
+                            index=df_interval.index)
+
+            fig.add_trace(go.Scatter(x=ts.index, y=ts.values, mode='lines',
+                                     name='Расход на входе(л/с)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts1.index, y=ts1.values, mode='lines',
+                                     name='Ходы насоса(ход/мин)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts2.index, y=ts2.values, mode='lines',
+                                     name='Ходы насоса(ход/мин).1'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts3.index, y=ts3.values, mode='lines',
+                                     name='Давление в манифольде(МПа)'), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=ts4.index, y=ts4.values, mode='lines',
+                                     name='Температура окр.среды(C)'), row=i + 1, col=1)
+            # fig.add_trace(
+            #     go.Scatter(x=df_interval.index, y=df_interval['moving_average_rashod'], mode='lines', name='скользящее среднее'),
+            #     row=i + 1, col=1)
+
+        elif i == 2:
+            fig.add_trace(go.Scatter(x=target_test.index, y=target_test.values, mode='lines', name='Фактические НПВ',
+                                     line=dict(color='green')), row=i + 1, col=1)
+            # fig.add_trace(go.Scatter(x=target_pred.index, y=target_pred.values, mode='lines', name='Предсказанные НПВ',
+            #                          line=dict(color='red')), row=i + 1, col=1)
+            fig.add_trace(go.Scatter(x=df_interval.index, y=df_interval['ma_rashod_less_190'], mode='lines', name='Предсказанные НПВ',
+                                     line=dict(color='blue')), row=i + 1, col=1)
+            for _, row in regions.iterrows():
+                color = 'rgba(133,239,178, 0.5)' if row['match'] else 'rgba(239,157,133, 0.5)'
+                fig.add_vrect(
+                    x0=row['start_date'],
+                    x1=row['end_date'],
+                    fillcolor=color,
+                    line_width=0,
+                    layer='below',
+                    row=i + 1,
+                    col=1
+                )
+
+
+    # for i in range(3):
+    #     # Add shapes for background zones
+    #     for j in range(len(y_zones) - 1):
+    #         fig.add_shape(
+    #             type="rect",
+    #             x0=df_interval.index[0],
+    #             y0=y_zones[j],
+    #             x1=df_interval.index[-1],
+    #             y1=y_zones[j + 1],
+    #             fillcolor=zone_colors[j],
+    #             layer="below",
+    #             line=dict(color="rgba(0, 0, 0, 0)")
+    #             , row=i+1, col=1
+    #         )
+    #     # Add horizontal lines at 20 and 40
+    #     for y in [20, 40]:
+    #         fig.add_shape(type="line",
+    #                       x0=df_interval.index[0], y0=y,
+    #                       x1=df_interval.index[-1], y1=y,
+    #                       line=dict(color="rgba(0,0,0,0.5)", width=1, dash="dash"),
+    #                       row=i+1, col=1
+    #                       )
+
+
     # # Add vertical lines
     # for line in vertical_lines_start:
     #     fig.add_shape(type="line",
@@ -455,27 +471,29 @@ for i in range(3):
     #                   )
     #
 
-# Update layout for each subplot
-# for i in range(3):
-#     fig.update_xaxes(title_text="Date", row=i+1, col=1)
-#     fig.update_yaxes(title_text="Value", row=i+1, col=1)
-# Update layout for each subplot
-# for i in range(3):
-#     fig.update_xaxes(title_text="Date", row=i+1, col=1)
-#     fig.update_yaxes(title_text="Value", row=i+1, col=1)
-# Update layout for the whole figure
-fig.update_layout(
-    title=f'Показатели бурения нефтяных скважин',
-    showlegend=True,
-    # height=900
-)
-# and legends for each subplot
-# fig.update_annotations({'xref': 'paper', 'yref': 'paper', 'x': 0.5, 'y': 1.15, 'showarrow': False, 'text': 'Plot 1'}, row=1, col=1)
-# fig.update_annotations({'xref': 'paper', 'yref': 'paper', 'x': 0.5, 'y': 0.78, 'showarrow': False, 'text': 'Plot 2'}, row=2, col=1)
-# fig.update_annotations({'xref': 'paper', 'yref': 'paper', 'x': 0.5, 'y': 0.45, 'showarrow': False, 'text': 'Plot 3'}, row=3, col=1)
-# Show plot
-fig.show()
+    # Update layout for each subplot
+    # for i in range(3):
+    #     fig.update_xaxes(title_text="Date", row=i+1, col=1)
+    #     fig.update_yaxes(title_text="Value", row=i+1, col=1)
+    # Update layout for each subplot
+    # for i in range(3):
+    #     fig.update_xaxes(title_text="Date", row=i+1, col=1)
+    #     fig.update_yaxes(title_text="Value", row=i+1, col=1)
+    # Update layout for the whole figure
+    fig.update_layout(
+        title=f'Показатели бурения нефтяных скважин',
+        showlegend=True,
+        # height=900
+    )
+    # and legends for each subplot
+    # fig.update_annotations({'xref': 'paper', 'yref': 'paper', 'x': 0.5, 'y': 1.15, 'showarrow': False, 'text': 'Plot 1'}, row=1, col=1)
+    # fig.update_annotations({'xref': 'paper', 'yref': 'paper', 'x': 0.5, 'y': 0.78, 'showarrow': False, 'text': 'Plot 2'}, row=2, col=1)
+    # fig.update_annotations({'xref': 'paper', 'yref': 'paper', 'x': 0.5, 'y': 0.45, 'showarrow': False, 'text': 'Plot 3'}, row=3, col=1)
+    # Show plot
+    fig.show()
+    fig.write_html(rf"C:\Users\olesya.krasnukhina\Documents\Проекты\НСХ\modelling_plots\{model_name}_{version}_{data_name[:-4]}_{start_date.date()}_{end_date.date()}.html")
+    print(f'Точность: {round(sum(df_interval['y_test'] == df_interval['ma_rashod_less_190']) / len(df_interval['y_test']) * 100, 2)} %')
 
-# df_interpolated.loc['2023-11-07 00:00:00':'2023-11-08 00:00:00', 'WithinInterval'] = 1
-#
-# df_interpolated.loc['2023-11-07 00:00:00':'2023-11-08 00:00:00', 'WithinInterval'] = df_interpolated.loc['2023-11-07 00:00:00':'2023-11-08 00:00:00', 'Target']
+    # df_interval_interpolated.loc['2023-11-07 00:00:00':'2023-11-08 00:00:00', 'WithinInterval'] = 1
+    #
+    # df_interval_interpolated.loc['2023-11-07 00:00:00':'2023-11-08 00:00:00', 'WithinInterval'] = df_interval_interpolated.loc['2023-11-07 00:00:00':'2023-11-08 00:00:00', 'Target']
